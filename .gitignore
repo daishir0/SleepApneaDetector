@@ -61,3 +61,7 @@ sleep_analysis.db
 # Test data (large files)
 tests/test_data/*.mp4
 tests/test_data/*.MOV
+
+# Development scripts
+sleep-apnea.sh
+test_simple_analysis.py
