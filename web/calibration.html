@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>無呼吸検出パラメータ設定 - Sleep Apnea Calibration</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .upload-section input[type="file"] {
+            margin: 10px 0;
+        }
+
+        .upload-section button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .upload-section button:hover {
+            background: #2980b9;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .controls label {
+            font-size: 14px;
+            color: #555;
+            margin-right: 5px;
+        }
+
+        .controls input[type="range"] {
+            width: 200px;
+        }
+
+        .controls input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .controls button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .controls button:hover {
+            background: #229954;
+        }
+
+        .controls button.danger {
+            background: #e74c3c;
+        }
+
+        .controls button.danger:hover {
+            background: #c0392b;
+        }
+
+        .waveform-container {
+            margin: 20px 0;
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .info-card h3 {
+            color: #2c3e50;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .info-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .markers-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .markers-list h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .marker-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .marker-item button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .status {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .audio-controls {
+            display: none;
+            background: #34495e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .audio-controls audio {
+            width: 100%;
+        }
+
+        .instruction {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .instruction h3 {
+            margin-bottom: 10px;
+        }
+
+        .instruction ol {
+            margin-left: 20px;
+        }
+
+        .instruction li {
+            margin-bottom: 5px;
+        }
+
+        .files-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .files-section h2 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .files-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #3498db;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+
+        .file-name:hover {
+            color: #3498db;
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 4px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .file-actions button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .file-actions button:hover {
+            background: #2980b9;
+        }
+
+        .file-actions button.edit {
+            background: #f39c12;
+        }
+
+        .file-actions button.edit:hover {
+            background: #e67e22;
+        }
+
+        .file-actions button.delete {
+            background: #e74c3c;
+        }
+
+        .file-actions button.delete:hover {
+            background: #c0392b;
+        }
+
+        .candidates-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .candidates-section h2 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            background: #ecf0f1;
+            height: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .candidates-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .candidate-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #95a5a6;
+        }
+
+        .candidate-item.pending {
+            border-left-color: #95a5a6;
+        }
+
+        .candidate-item.apnea {
+            border-left-color: #e74c3c;
+            background: #fef5f5;
+        }
+
+        .candidate-item.skip {
+            border-left-color: #bdc3c7;
+            background: #f8f9fa;
+            opacity: 0.6;
+        }
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .candidate-info {
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .candidate-time {
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .candidate-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .candidate-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .candidate-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-play {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-play:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        .btn-apnea {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-apnea:hover:not(:disabled) {
+            background: #c0392b;
+        }
+
+        .btn-skip {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-skip:hover:not(:disabled) {
+            background: #7f8c8d;
+        }
+
+        .mode-switch {
+            margin-bottom: 20px;
+        }
+
+        .mode-switch button {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .mode-switch button.active {
+            background: #3498db;
+        }
+
+        .mode-switch button:hover {
+            opacity: 0.9;
+        }
+
+        #manualMode, #candidateMode {
+            display: none;
+        }
+
+        #manualMode.active, #candidateMode.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 無呼吸検出パラメータ設定</h1>
+        <p class="subtitle">Sleep Apnea Detection Parameter Calibration Tool</p>
+
+        <div class="instruction">
+            <h3>📝 使い方</h3>
+            <ol>
+                <li>動画ファイルをアップロードして「解析開始」をクリック</li>
+                <li>または、以前アップロードしたファイル一覧から選択</li>
+                <li>波形が表示されたら、タイムスケールを調整して見やすくする</li>
+                <li>波形をクリックすると、その位置から音声が再生されます</li>
+                <li>音声再生位置は波形上に赤い縦線で表示されます</li>
+                <li>無呼吸だと判断できる区間の<strong>開始時刻と終了時刻</strong>を入力して「マーク追加」</li>
+                <li>複数の無呼吸区間をマークしたら「パラメータを計算」をクリック</li>
+                <li>計算されたパラメータが表示されます（以降の自動検出に使用）</li>
+            </ol>
+        </div>
+
+        <div class="files-section">
+            <h2>📁 アップロード済みファイル</h2>
+            <div class="files-list" id="filesList">
+                <p style="color: #999;">読み込み中...</p>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <input type="file" id="videoFile" accept="video/*">
+            <button onclick="loadVideo()">解析開始</button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="mode-switch" id="modeSwitch" style="display:none;">
+            <button id="btnCandidateMode" class="active" onclick="switchMode('candidate')">🎯 候補判定モード（推奨）</button>
+            <button id="btnManualMode" onclick="switchMode('manual')">✏️ 手動入力モード</button>
+        </div>
+
+        <div id="candidateMode" class="active">
+            <div class="candidates-section" id="candidatesSection">
+                <h2>🎯 無呼吸候補ポイント判定</h2>
+                <p style="color: #7f8c8d; font-size: 13px; margin-bottom: 15px;">
+                    RMSエネルギーが大きいポイント（呼吸再開の可能性）を順に判定してください
+                </p>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%">0 / 0</div>
+                </div>
+
+                <button onclick="extractCandidates()" style="background: #27ae60; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; margin-right: 10px;">
+                    📊 候補ポイントを抽出
+                </button>
+
+                <button onclick="showJudgmentSummary()" style="background: #3498db; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; margin-right: 10px;">
+                    📊 判定サマリを表示
+                </button>
+
+                <button onclick="calculateParametersFromCandidates()" style="background: #f39c12; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">
+                    📈 パラメータを計算
+                </button>
+
+                <button onclick="calculateSAS()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; margin-left: 10px; font-weight: bold;">
+                    🩺 SAS判定を実行
+                </button>
+
+                <!-- 判定サマリパネル -->
+                <div id="judgmentSummaryPanel" style="display: none; background: #ecf0f1; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; color: #2c3e50;">📊 判定サマリ</h3>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="color: #7f8c8d; font-size: 12px;">全体</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #34495e;" id="summaryTotal">-</div>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="color: #7f8c8d; font-size: 12px;">✅ 無呼吸</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #e74c3c;" id="summaryApnea">-</div>
+                            <div style="font-size: 11px; color: #95a5a6;" id="summaryApneaPct">-</div>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="color: #7f8c8d; font-size: 12px;">❌ 違う</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #95a5a6;" id="summarySkip">-</div>
+                            <div style="font-size: 11px; color: #95a5a6;" id="summarySkipPct">-</div>
+                        </div>
+                    </div>
+
+                    <div id="apneaStatistics" style="display: none; background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h4 style="margin-top: 0; color: #e74c3c;">【無呼吸のRMS統計】</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 14px;">
+                            <div><strong>平均値:</strong> <span id="statMean">-</span></div>
+                            <div><strong>標準偏差:</strong> <span id="statStd">-</span></div>
+                            <div><strong>最小値:</strong> <span id="statMin">-</span></div>
+                            <div><strong>最大値:</strong> <span id="statMax">-</span></div>
+                        </div>
+                        <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                            <div style="font-size: 13px;"><strong>推奨範囲 (μ±2σ):</strong></div>
+                            <div style="font-size: 16px; color: #856404; font-weight: bold;" id="statRange2Sigma">-</div>
+                        </div>
+                    </div>
+
+                    <div id="additionalCandidatesControl" style="display: none;">
+                        <h4 style="color: #2c3e50;">🔍 追加候補を抽出</h4>
+                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                            <label style="font-weight: bold;">範囲:</label>
+                            <select id="sigmaRange" style="padding: 8px; border: 1px solid #bdc3c7; border-radius: 5px;">
+                                <option value="2.0">μ ± 2σ (95%信頼区間)</option>
+                                <option value="1.0">μ ± 1σ (68%信頼区間)</option>
+                            </select>
+                            <label style="font-weight: bold;">最大件数:</label>
+                            <input type="number" id="maxAdditionalCandidates" value="30" min="10" max="100" style="padding: 8px; border: 1px solid #bdc3c7; border-radius: 5px; width: 80px;">
+                            <button onclick="extractAdditionalCandidates()" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                実行
+                            </button>
+                        </div>
+                        <div style="font-size: 12px; color: #7f8c8d;">
+                            ※ 無呼吸判定されたRMS値の統計から、似た特徴を持つ追加候補を抽出します
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SAS判定結果パネル -->
+                <div id="sasResultPanel" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 10px; margin-bottom: 20px; color: white;">
+                    <h3 style="margin-top: 0; color: white;">🩺 SAS判定結果</h3>
+
+                    <!-- 全体のAHI -->
+                    <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; margin-bottom: 15px; backdrop-filter: blur(10px);">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                            <div>
+                                <div style="font-size: 13px; opacity: 0.9;">総録音時間</div>
+                                <div style="font-size: 22px; font-weight: bold;" id="sasRecordingTime">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 13px; opacity: 0.9;">無呼吸イベント数</div>
+                                <div style="font-size: 22px; font-weight: bold;" id="sasEventCount">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AHI・重症度 -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
+                            <div style="font-size: 13px; opacity: 0.9;">全体AHI</div>
+                            <div style="font-size: 42px; font-weight: bold; margin: 5px 0;" id="sasOverallAHI">-</div>
+                            <div style="font-size: 12px; opacity: 0.8;">回/時間</div>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
+                            <div style="font-size: 13px; opacity: 0.9;">重症度</div>
+                            <div style="font-size: 32px; font-weight: bold; margin: 5px 0;" id="sasSeverity">-</div>
+                            <div style="font-size: 12px; opacity: 0.8;" id="sasSeverityNote">-</div>
+                        </div>
+                    </div>
+
+                    <!-- 最悪期間 -->
+                    <div id="worstPeriodContainer" style="display: none; background: rgba(231, 76, 60, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid rgba(231, 76, 60, 0.5);">
+                        <h4 style="margin: 0 0 10px 0; color: white;">⚠️ 最も症状が強い時間帯</h4>
+                        <div style="font-size: 14px;">
+                            <div><strong>時間帯:</strong> <span id="worstPeriodTime">-</span></div>
+                            <div><strong>AHI:</strong> <span id="worstPeriodAHI">-</span> 回/時間</div>
+                        </div>
+                    </div>
+
+                    <!-- AHI推移グラフボタン -->
+                    <button onclick="showAHITimeline()" style="width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.25); color: white; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; backdrop-filter: blur(10px);">
+                        📊 AHI推移グラフを表示
+                    </button>
+                </div>
+
+                <!-- AHI推移グラフコンテナ -->
+                <div id="ahiGraphContainer" style="display: none; background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #667eea;">
+                    <h3 style="margin-top: 0; color: #667eea;">📈 AHI推移グラフ（スライディングウィンドウ: 5分刻み）</h3>
+                    <div id="ahiGraph"></div>
+                    <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 13px; color: #495057;">
+                        <strong>💡 グラフの見方:</strong><br>
+                        • 横軸: 時刻（窓の開始時刻）<br>
+                        • 縦軸: AHI（1時間あたりの無呼吸イベント数）<br>
+                        • 赤線（AHI=5）: SAS診断基準<br>
+                        • グラフが赤線を超える時間帯は、睡眠時無呼吸症候群の症状が出ている可能性があります
+                    </div>
+                </div>
+
+                <div class="candidates-list" id="candidatesList"></div>
+            </div>
+        </div>
+
+        <div id="manualMode">
+            <div class="controls">
+            <div>
+                <label>タイムスケール (秒):</label>
+                <input type="range" id="timeScale" min="60" max="1800" value="300" step="60" oninput="updateTimeScale()">
+                <span id="timeScaleValue">300</span>秒
+            </div>
+
+            <div>
+                <label>開始時刻 (秒):</label>
+                <input type="number" id="markerStart" min="0" step="0.1" placeholder="例: 120.5">
+            </div>
+
+            <div>
+                <label>終了時刻 (秒):</label>
+                <input type="number" id="markerEnd" min="0" step="0.1" placeholder="例: 135.0">
+            </div>
+
+            <button onclick="addMarker()">🚩 マーク追加</button>
+            <button onclick="calculateParameters()" style="background: #f39c12;">📊 パラメータを計算</button>
+            <button onclick="clearMarkers()" class="danger">🗑️ マーククリア</button>
+        </div>
+        </div>
+
+        <div class="waveform-container" id="waveformContainer" style="display:none;">
+            <h2 style="margin-bottom: 10px;">音声波形 (RMS エネルギー)</h2>
+            <p style="color: #7f8c8d; font-size: 12px; margin-bottom: 10px;">
+                波形をクリックすると、その位置から音声が再生されます
+            </p>
+            <div id="waveformPlot"></div>
+        </div>
+
+        <div class="audio-controls" id="audioControls">
+            <audio id="audioPlayer" controls></audio>
+        </div>
+
+        <div class="info-panel" id="infoPanel" style="display:none;">
+            <div class="info-card">
+                <h3>録画時間</h3>
+                <div class="value" id="durationValue">-</div>
+            </div>
+            <div class="info-card">
+                <h3>マーク数</h3>
+                <div class="value" id="markerCount">0</div>
+            </div>
+            <div class="info-card">
+                <h3>計算された無音閾値</h3>
+                <div class="value" id="silenceThreshold">-</div>
+            </div>
+            <div class="info-card">
+                <h3>計算された呼吸再開倍率</h3>
+                <div class="value" id="resumeMultiplier">-</div>
+            </div>
+        </div>
+
+        <div class="time-settings" id="timeSettings" style="display:none; background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0;">📅 撮影開始日時設定</h3>
+            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
+                <label style="font-weight: bold;">撮影開始日時:</label>
+                <input type="datetime-local" id="recordingDateTime" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                <button onclick="saveRecordingDateTime()" style="padding: 8px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">保存</button>
+                <span id="recordingDateTimeStatus" style="color: #27ae60; font-weight: bold;"></span>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <label style="font-weight: bold;">時刻表示:</label>
+                <button id="timeDisplayToggle" onclick="toggleTimeDisplayMode()" disabled style="padding: 8px 20px; background: #95a5a6; color: white; border: none; border-radius: 5px; cursor: not-allowed; font-weight: bold;">
+                    相対時間 ⇄ 実時刻
+                </button>
+                <span id="currentTimeMode" style="color: #7f8c8d; font-size: 13px;">(撮影日時を設定してください)</span>
+            </div>
+        </div>
+
+        <div class="markers-list" id="markersList" style="display:none;">
+            <h3>マークした無呼吸区間</h3>
+            <div id="markersContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentJobId = null;
+        let waveformData = null;
+        let markers = [];
+        let audioBlob = null;
+        let playbackLineShape = null;
+        let animationFrameId = null;
+        let candidates = [];
+        let currentMode = 'candidate';
+        let recordingStartDatetime = null;  // 撮影開始日時
+        let timeDisplayMode = 'relative';    // 'relative' or 'absolute'
+
+        // ページ読み込み時にファイル一覧を取得
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFilesList();
+        });
+
+        function switchMode(mode) {
+            currentMode = mode;
+
+            // ボタンのアクティブ状態切り替え
+            document.getElementById('btnCandidateMode').classList.toggle('active', mode === 'candidate');
+            document.getElementById('btnManualMode').classList.toggle('active', mode === 'manual');
+
+            // モードセクション切り替え
+            document.getElementById('candidateMode').classList.toggle('active', mode === 'candidate');
+            document.getElementById('manualMode').classList.toggle('active', mode === 'manual');
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('status').style.display = 'none';
+        }
+
+        async function loadFilesList() {
+            try {
+                const response = await fetch('/calibrate/jobs?limit=20');
+                if (!response.ok) throw new Error('ファイル一覧取得エラー');
+
+                const data = await response.json();
+                displayFilesList(data.jobs);
+            } catch (error) {
+                console.error('ファイル一覧読み込みエラー:', error);
+                document.getElementById('filesList').innerHTML = '<p style="color: #e74c3c;">ファイル一覧の読み込みに失敗しました</p>';
+            }
+        }
+
+        function displayFilesList(jobs) {
+            const filesListEl = document.getElementById('filesList');
+
+            if (jobs.length === 0) {
+                filesListEl.innerHTML = '<p style="color: #999;">アップロード済みファイルはありません</p>';
+                return;
+            }
+
+            filesListEl.innerHTML = jobs.map(job => {
+                const fileSize = job.file_size ? (job.file_size / 1024 / 1024).toFixed(1) + ' MB' : '-';
+                const createdDate = new Date(job.created_at).toLocaleString('ja-JP');
+                const displayName = job.name || job.job_id;  // 省略せずにフルIDを表示
+
+                return `
+                    <div class="file-item" id="file-${job.job_id}">
+                        <div class="file-info">
+                            <div class="file-name" onclick="loadExistingJob('${job.job_id}')">${displayName}</div>
+                            <div class="file-meta">作成日: ${createdDate} | サイズ: ${fileSize}</div>
+                        </div>
+                        <div class="file-actions">
+                            <button class="edit" onclick="editFileName('${job.job_id}', '${displayName}')">名前変更</button>
+                            <button onclick="loadExistingJob('${job.job_id}')">読み込み</button>
+                            <button class="delete" onclick="deleteJob('${job.job_id}', '${displayName}')">削除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function editFileName(jobId, currentName) {
+            const newName = prompt('新しいファイル名を入力してください:', currentName);
+            if (!newName || newName === currentName) return;
+
+            try {
+                const response = await fetch(`/calibrate/job/${jobId}/name?name=${encodeURIComponent(newName)}`, {
+                    method: 'PUT'
+                });
+
+                if (!response.ok) throw new Error('名前変更エラー');
+
+                showStatus('ファイル名を変更しました', 'success');
+                loadFilesList();
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function deleteJob(jobId, displayName) {
+            if (!confirm(`「${displayName}」を削除しますか？\n\n動画ファイル、音声ファイル、解析結果が全て削除されます。`)) {
+                return;
+            }
+
+            showStatus('削除中...', 'info');
+
+            try {
+                const response = await fetch(`/calibrate/job/${jobId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('削除エラー');
+
+                showStatus('ファイルを削除しました', 'success');
+
+                // 現在読み込み中のジョブだった場合、画面をクリア
+                if (currentJobId === jobId) {
+                    currentJobId = null;
+                    waveformData = null;
+                    markers = [];
+                    document.getElementById('waveformContainer').style.display = 'none';
+                    document.getElementById('audioControls').style.display = 'none';
+                    document.getElementById('infoPanel').style.display = 'none';
+                    document.getElementById('markersList').style.display = 'none';
+                }
+
+                // ファイル一覧を更新
+                loadFilesList();
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function loadExistingJob(jobId) {
+            showStatus('ファイルを読み込み中...', 'info');
+
+            try {
+                const response = await fetch(`/calibrate/load?job_id=${jobId}`);
+                if (!response.ok) throw new Error('ファイル読み込みエラー');
+
+                const data = await response.json();
+                currentJobId = jobId;
+                waveformData = data;
+
+                // 撮影開始日時と表示モードを復元
+                recordingStartDatetime = data.recording_start_datetime || null;
+                timeDisplayMode = data.time_display_mode || 'relative';
+
+                // 撮影開始日時UIを復元
+                if (recordingStartDatetime) {
+                    document.getElementById('recordingDateTime').value = recordingStartDatetime;
+                    const toggleBtn = document.getElementById('timeDisplayToggle');
+                    toggleBtn.disabled = false;
+                    toggleBtn.style.background = '#3498db';
+                    toggleBtn.style.cursor = 'pointer';
+                }
+
+                updateCurrentTimeModeDisplay();
+
+                showStatus('ファイル読み込み完了！', 'success');
+                displayWaveform(data);
+                loadAudio(jobId);
+
+                document.getElementById('waveformContainer').style.display = 'block';
+                document.getElementById('infoPanel').style.display = 'grid';
+                document.getElementById('timeSettings').style.display = 'block';
+                document.getElementById('markersList').style.display = 'block';
+                document.getElementById('modeSwitch').style.display = 'block';
+                document.getElementById('candidatesSection').style.display = 'block';
+
+                document.getElementById('durationValue').textContent = (data.duration_sec / 60).toFixed(1) + ' 分';
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function extractCandidates() {
+            if (!currentJobId) {
+                showStatus('先にファイルを読み込んでください', 'error');
+                return;
+            }
+
+            showStatus('候補ポイントを抽出中...', 'info');
+
+            try {
+                const response = await fetch(`/calibrate/extract-candidates?job_id=${currentJobId}&top_n=50`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) throw new Error('候補抽出エラー');
+
+                const data = await response.json();
+                candidates = data.candidates;
+
+                // 保存された判定結果を読み込む
+                await loadJudgments();
+
+                showStatus(`候補ポイント ${candidates.length}件を抽出しました！`, 'success');
+                displayCandidates();
+                document.getElementById('candidatesSection').style.display = 'block';
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function displayCandidates() {
+            const listEl = document.getElementById('candidatesList');
+            updateProgress();
+
+            if (candidates.length === 0) {
+                listEl.innerHTML = '<p style="color: #999;">候補がありません</p>';
+                return;
+            }
+
+            // 初回50件と追加候補を分ける
+            const initialCandidates = candidates.filter(c => c.id < 50);
+            const additionalCandidates = candidates.filter(c => c.id >= 50);
+
+            let html = '';
+
+            // 初回候補セクション
+            if (initialCandidates.length > 0) {
+                html += '<div style="margin-bottom: 15px;"><h4 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">📊 初回候補（上位50件）</h4></div>';
+                html += initialCandidates.map((candidate, arrayIndex) => {
+                    const index = candidates.indexOf(candidate);
+                    return `
+                        <div class="candidate-item ${candidate.status}" id="candidate-${index}">
+                            <div class="candidate-header">
+                                <div class="candidate-info">
+                                    <span style="font-weight: bold; margin-right: 10px;">#${candidate.id + 1}</span>
+                                    <span class="candidate-time">${formatTimeDisplay(candidate.peak_time)}</span>
+                                    <span style="margin-left: 10px; color: #95a5a6; font-size: 12px;">
+                                        RMS: ${candidate.peak_rms.toFixed(6)}
+                                    </span>
+                                </div>
+                                <div class="candidate-buttons">
+                                    <button class="btn-play" onclick="playCandidate(${index})">▶️ 再生</button>
+                                    <button class="btn-apnea" onclick="markAsApnea(${index})">✅ 無呼吸</button>
+                                    <button class="btn-skip" onclick="skipCandidate(${index})">❌ 違う</button>
+                                </div>
+                            </div>
+                            ${candidate.status === 'apnea' ? `<div style="color: #e74c3c; font-size: 12px; margin-top: 5px;">✓ 無呼吸として記録しました</div>` : ''}
+                            ${candidate.status === 'skip' ? `<div style="color: #95a5a6; font-size: 12px; margin-top: 5px;">スキップしました</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 追加候補セクション
+            if (additionalCandidates.length > 0) {
+                html += '<div style="margin-top: 30px; margin-bottom: 15px;"><h4 style="color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">🔍 追加候補（統計ベース抽出）</h4></div>';
+                html += additionalCandidates.map((candidate, arrayIndex) => {
+                    const index = candidates.indexOf(candidate);
+                    const confidenceColor = candidate.confidence >= 0.8 ? '#27ae60' : candidate.confidence >= 0.5 ? '#f39c12' : '#e74c3c';
+                    return `
+                        <div class="candidate-item ${candidate.status}" id="candidate-${index}" style="border-left: 3px solid #27ae60;">
+                            <div class="candidate-header">
+                                <div class="candidate-info">
+                                    <span style="font-weight: bold; margin-right: 10px;">#${candidate.id + 1} 🆕</span>
+                                    <span class="candidate-time">${formatTimeDisplay(candidate.peak_time)}</span>
+                                    <span style="margin-left: 10px; color: #95a5a6; font-size: 12px;">
+                                        RMS: ${candidate.peak_rms.toFixed(6)}
+                                    </span>
+                                    ${candidate.confidence !== undefined ? `
+                                        <span style="margin-left: 10px; color: ${confidenceColor}; font-size: 11px; font-weight: bold;">
+                                            信頼度: ${(candidate.confidence * 100).toFixed(0)}%
+                                        </span>
+                                    ` : ''}
+                                </div>
+                                <div class="candidate-buttons">
+                                    <button class="btn-play" onclick="playCandidate(${index})">▶️ 再生</button>
+                                    <button class="btn-apnea" onclick="markAsApnea(${index})">✅ 無呼吸</button>
+                                    <button class="btn-skip" onclick="skipCandidate(${index})">❌ 違う</button>
+                                </div>
+                            </div>
+                            ${candidate.status === 'apnea' ? `<div style="color: #e74c3c; font-size: 12px; margin-top: 5px;">✓ 無呼吸として記録しました</div>` : ''}
+                            ${candidate.status === 'skip' ? `<div style="color: #95a5a6; font-size: 12px; margin-top: 5px;">スキップしました</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            listEl.innerHTML = html;
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = (seconds % 60).toFixed(1);
+            return `${mins}:${secs.padStart(4, '0')}`;
+        }
+
+        function updateProgress() {
+            const judged = candidates.filter(c => c.status !== 'pending').length;
+            const total = candidates.length;
+            const percentage = total > 0 ? (judged / total * 100) : 0;
+
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = `${percentage}%`;
+            progressFill.textContent = `${judged} / ${total}`;
+        }
+
+        function playCandidate(index) {
+            console.log(`[DEBUG] playCandidate called - index: ${index}`);
+            const startTime = performance.now();
+
+            const candidate = candidates[index];
+            console.log(`[DEBUG] candidate:`, candidate);
+            console.log(`[DEBUG] apnea_start: ${candidate.apnea_start}`);
+
+            // ピークの10秒前から再生
+            const beforePlay = performance.now();
+            console.log(`[DEBUG] Time before playAudioAt: ${beforePlay - startTime}ms`);
+
+            playAudioAt(candidate.apnea_start);
+
+            const afterPlay = performance.now();
+            console.log(`[DEBUG] Time after playAudioAt: ${afterPlay - beforePlay}ms`);
+            console.log(`[DEBUG] Total time: ${afterPlay - startTime}ms`);
+
+            showStatus(`再生: ${formatTime(candidate.peak_time)} の10秒前から`, 'info');
+        }
+
+        async function markAsApnea(index) {
+            candidates[index].status = 'apnea';
+            await saveJudgment(index, 'apnea');
+            displayCandidates();
+            showStatus(`候補 #${index + 1} を無呼吸としてマークしました`, 'success');
+
+            // 次の未判定候補までスクロール
+            scrollToNextPending(index);
+        }
+
+        async function skipCandidate(index) {
+            candidates[index].status = 'skip';
+            await saveJudgment(index, 'skip');
+            displayCandidates();
+            showStatus(`候補 #${index + 1} をスキップしました`, 'info');
+
+            // 次の未判定候補までスクロール
+            scrollToNextPending(index);
+        }
+
+        function scrollToNextPending(currentIndex) {
+            const nextPending = candidates.findIndex((c, i) => i > currentIndex && c.status === 'pending');
+            if (nextPending !== -1) {
+                document.getElementById(`candidate-${nextPending}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        async function saveJudgment(candidateIndex, status) {
+            try {
+                const candidate = candidates[candidateIndex];
+                const response = await fetch(`/calibrate/save-judgment?job_id=${currentJobId}&candidate_id=${candidate.id}&status=${status}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    console.error('判定保存エラー');
+                }
+            } catch (error) {
+                console.error('判定保存エラー:', error);
+            }
+        }
+
+        async function loadJudgments() {
+            try {
+                const response = await fetch(`/calibrate/judgments?job_id=${currentJobId}`);
+                if (!response.ok) return;
+
+                const data = await response.json();
+                const judgments = data.judgments;
+
+                // 候補リストに保存された判定結果を反映
+                candidates.forEach(candidate => {
+                    if (judgments[candidate.id] !== undefined) {
+                        candidate.status = judgments[candidate.id];
+                    }
+                });
+
+                console.log(`[判定読み込み] ${Object.keys(judgments).length}件の判定を復元しました`);
+            } catch (error) {
+                console.error('判定読み込みエラー:', error);
+            }
+        }
+
+        async function calculateParametersFromCandidates() {
+            const apneaCandidates = candidates.filter(c => c.status === 'apnea');
+
+            if (apneaCandidates.length === 0) {
+                showStatus('無呼吸としてマークした候補がありません', 'error');
+                return;
+            }
+
+            // 候補を旧形式のマーカーに変換
+            const markersData = apneaCandidates.map(c => ({
+                start: c.apnea_start,
+                end: c.apnea_end
+            }));
+
+            showStatus('パラメータを計算中...', 'info');
+
+            try {
+                const response = await fetch('/calibrate/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_id: currentJobId,
+                        markers: markersData
+                    })
+                });
+
+                if (!response.ok) throw new Error('計算エラー');
+
+                const result = await response.json();
+
+                document.getElementById('silenceThreshold').textContent = result.silence_threshold.toFixed(6);
+                document.getElementById('resumeMultiplier').textContent = result.resume_multiplier.toFixed(2) + 'x';
+
+                showStatus(`パラメータ計算完了！無呼吸: ${apneaCandidates.length}件`, 'success');
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function loadVideo() {
+            const fileInput = document.getElementById('videoFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showStatus('ファイルを選択してください', 'error');
+                return;
+            }
+
+            showStatus('動画を解析中... 音声を抽出しています', 'info');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/calibrate/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`解析エラー: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                currentJobId = data.job_id;
+                waveformData = data;
+
+                showStatus('解析完了！波形を表示しています', 'success');
+                displayWaveform(data);
+                loadAudio(data.job_id);
+
+                document.getElementById('waveformContainer').style.display = 'block';
+                document.getElementById('infoPanel').style.display = 'grid';
+                document.getElementById('markersList').style.display = 'block';
+                document.getElementById('modeSwitch').style.display = 'block';
+                document.getElementById('candidatesSection').style.display = 'block';
+
+                document.getElementById('durationValue').textContent = (data.duration_sec / 60).toFixed(1) + ' 分';
+
+                // ファイル一覧を更新
+                loadFilesList();
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function loadAudio(jobId) {
+            try {
+                const response = await fetch(`/calibrate/audio?job_id=${jobId}`);
+                if (!response.ok) throw new Error('音声取得エラー');
+
+                audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = audioUrl;
+
+                // 音声再生イベントリスナーを設定
+                setupAudioSyncListeners(audioPlayer);
+
+                document.getElementById('audioControls').style.display = 'block';
+
+            } catch (error) {
+                console.error('音声読み込みエラー:', error);
+            }
+        }
+
+        function setupAudioSyncListeners(audioPlayer) {
+            // 既存のリスナーをクリア
+            audioPlayer.removeEventListener('timeupdate', updatePlaybackLine);
+            audioPlayer.removeEventListener('seeked', onAudioSeeked);
+
+            // 新しいリスナーを追加
+            audioPlayer.addEventListener('timeupdate', updatePlaybackLine);
+            audioPlayer.addEventListener('seeked', onAudioSeeked);
+        }
+
+        function updatePlaybackLine() {
+            if (!waveformData) return;
+
+            const audioPlayer = document.getElementById('audioPlayer');
+            const currentTime = audioPlayer.currentTime;
+
+            // 波形上に赤い縦線を描画
+            const currentLayout = document.getElementById('waveformPlot').layout;
+            const shapes = currentLayout.shapes || [];
+
+            // 既存のマーカー（赤い矩形）を保持
+            const markerShapes = shapes.filter(s => s.fillcolor === 'red' && s.type === 'rect');
+
+            // 再生位置の縦線を追加
+            const playbackLine = {
+                type: 'line',
+                xref: 'x',
+                yref: 'paper',
+                x0: currentTime,
+                x1: currentTime,
+                y0: 0,
+                y1: 1,
+                line: {
+                    color: 'red',
+                    width: 3,
+                    dash: 'solid'
+                }
+            };
+
+            Plotly.relayout('waveformPlot', {
+                shapes: [...markerShapes, playbackLine]
+            });
+        }
+
+        function onAudioSeeked() {
+            if (!waveformData) return;
+
+            const audioPlayer = document.getElementById('audioPlayer');
+            const seekTime = audioPlayer.currentTime;
+
+            // 波形を自動スクロール（シーク位置が中央に来るように）
+            const currentLayout = document.getElementById('waveformPlot').layout;
+            const currentRange = currentLayout.xaxis.range;
+            const rangeWidth = currentRange[1] - currentRange[0];
+
+            // シーク位置を中央に配置
+            const newStart = Math.max(0, seekTime - rangeWidth / 2);
+            const newEnd = Math.min(waveformData.duration_sec, newStart + rangeWidth);
+
+            Plotly.relayout('waveformPlot', {
+                'xaxis.range': [newStart, newEnd]
+            });
+
+            updatePlaybackLine();
+        }
+
+        function displayWaveform(data) {
+            // rms_fullがあればそれを使用、なければwaveformを使用（後方互換性）
+            const waveform = data.rms_full || data.waveform;
+
+            // 最大値を取得して縦軸の範囲を決定（大きな配列でもスタックオーバーフローしない方法）
+            const maxRms = waveform.y.reduce((max, val) => Math.max(max, val), -Infinity);
+            // 0を中央に配置するため、上下対称の範囲を設定
+            const yMax = maxRms * 1.1;  // 上に10%の余白
+            const yRange = [-yMax, yMax];
+
+            const trace = {
+                x: waveform.t,
+                y: waveform.y,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'RMS',
+                line: { color: '#3498db', width: 1.5 },
+                fillcolor: 'rgba(52, 152, 219, 0.2)'
+            };
+
+            // X軸ラベルの設定
+            const xaxisConfig = {
+                range: [0, Math.min(300, data.duration_sec)]
+            };
+
+            if (timeDisplayMode === 'absolute' && recordingStartDatetime) {
+                // 実時刻表示モード
+                xaxisConfig.title = '時刻';
+                // ティックの位置を計算（30秒間隔）
+                const tickInterval = 30;
+                const tickVals = [];
+                const tickTexts = [];
+                for (let t = 0; t <= data.duration_sec; t += tickInterval) {
+                    tickVals.push(t);
+                    tickTexts.push(secondsToAbsoluteTime(t).substring(6)); // "HH:MM:SS"部分のみ
+                }
+                xaxisConfig.tickvals = tickVals;
+                xaxisConfig.ticktext = tickTexts;
+            } else {
+                // 相対時間表示モード
+                xaxisConfig.title = '時間 (秒)';
+            }
+
+            const layout = {
+                xaxis: xaxisConfig,
+                yaxis: {
+                    title: 'RMS エネルギー',
+                    range: yRange,
+                    zeroline: true,
+                    zerolinecolor: '#e74c3c',
+                    zerolinewidth: 2,
+                    fixedrange: false,
+                    autorange: false
+                },
+                hovermode: 'x',
+                shapes: [],
+                margin: { l: 60, r: 30, t: 30, b: 60 }
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d']
+            };
+
+            Plotly.newPlot('waveformPlot', [trace], layout, config);
+
+            document.getElementById('waveformPlot').on('plotly_click', function(data) {
+                const point = data.points[0];
+                const time = point.x;
+                playAudioAt(time);
+            });
+        }
+
+        function playAudioAt(time) {
+            console.log(`[DEBUG] playAudioAt called - time: ${time}`);
+            const startTime = performance.now();
+
+            const audioPlayer = document.getElementById('audioPlayer');
+            console.log(`[DEBUG] audioPlayer:`, audioPlayer);
+            console.log(`[DEBUG] audioPlayer.readyState: ${audioPlayer.readyState}`);
+            console.log(`[DEBUG] audioPlayer.duration: ${audioPlayer.duration}`);
+            console.log(`[DEBUG] audioPlayer.src: ${audioPlayer.src ? 'exists' : 'empty'}`);
+
+            const beforeSeek = performance.now();
+            console.log(`[DEBUG] Time before seek: ${beforeSeek - startTime}ms`);
+
+            audioPlayer.currentTime = time;
+
+            const afterSeek = performance.now();
+            console.log(`[DEBUG] Time after seek: ${afterSeek - beforeSeek}ms`);
+            console.log(`[DEBUG] New currentTime: ${audioPlayer.currentTime}`);
+
+            const playPromise = audioPlayer.play();
+
+            const afterPlayCall = performance.now();
+            console.log(`[DEBUG] Time after play() call: ${afterPlayCall - afterSeek}ms`);
+
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    const playStarted = performance.now();
+                    console.log(`[DEBUG] Play actually started: ${playStarted - afterPlayCall}ms after play() call`);
+                    console.log(`[DEBUG] Total time until play started: ${playStarted - startTime}ms`);
+                }).catch(error => {
+                    console.error(`[DEBUG] Play error:`, error);
+                });
+            }
+
+            showStatus(`再生開始: ${time.toFixed(1)}秒`, 'info');
+        }
+
+        function updateTimeScale() {
+            const timeScale = parseInt(document.getElementById('timeScale').value);
+            document.getElementById('timeScaleValue').textContent = timeScale;
+
+            if (waveformData) {
+                const currentLayout = document.getElementById('waveformPlot').layout;
+                Plotly.relayout('waveformPlot', {
+                    'xaxis.range': [0, Math.min(timeScale, waveformData.duration_sec)]
+                });
+            }
+        }
+
+        function addMarker() {
+            const start = parseFloat(document.getElementById('markerStart').value);
+            const end = parseFloat(document.getElementById('markerEnd').value);
+
+            if (isNaN(start) || isNaN(end)) {
+                showStatus('開始時刻と終了時刻を入力してください', 'error');
+                return;
+            }
+
+            if (start >= end) {
+                showStatus('終了時刻は開始時刻より後にしてください', 'error');
+                return;
+            }
+
+            if (!waveformData) {
+                showStatus('先に動画を解析してください', 'error');
+                return;
+            }
+
+            markers.push({ start, end, duration: end - start });
+            updateMarkersList();
+            updateWaveformMarkers();
+
+            document.getElementById('markerStart').value = '';
+            document.getElementById('markerEnd').value = '';
+
+            showStatus(`マーク追加: ${start.toFixed(1)}秒 - ${end.toFixed(1)}秒`, 'success');
+        }
+
+        function updateMarkersList() {
+            const content = document.getElementById('markersContent');
+            document.getElementById('markerCount').textContent = markers.length;
+
+            if (markers.length === 0) {
+                content.innerHTML = '<p style="color: #999;">まだマークがありません</p>';
+                return;
+            }
+
+            content.innerHTML = markers.map((marker, index) => `
+                <div class="marker-item">
+                    <span>${index + 1}. ${marker.start.toFixed(1)}秒 - ${marker.end.toFixed(1)}秒 (持続: ${marker.duration.toFixed(1)}秒)</span>
+                    <button onclick="deleteMarker(${index})">削除</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteMarker(index) {
+            markers.splice(index, 1);
+            updateMarkersList();
+            updateWaveformMarkers();
+            showStatus('マークを削除しました', 'info');
+        }
+
+        function clearMarkers() {
+            if (markers.length === 0) return;
+
+            if (confirm('すべてのマークをクリアしますか？')) {
+                markers = [];
+                updateMarkersList();
+                updateWaveformMarkers();
+                showStatus('マークをクリアしました', 'info');
+            }
+        }
+
+        function updateWaveformMarkers() {
+            if (!waveformData) return;
+
+            const shapes = markers.map(marker => ({
+                type: 'rect',
+                xref: 'x',
+                yref: 'paper',
+                x0: marker.start,
+                x1: marker.end,
+                y0: 0,
+                y1: 1,
+                fillcolor: 'red',
+                opacity: 0.3,
+                line: { width: 0 }
+            }));
+
+            Plotly.relayout('waveformPlot', { shapes });
+        }
+
+        async function calculateParameters() {
+            if (markers.length === 0) {
+                showStatus('先に無呼吸区間をマークしてください', 'error');
+                return;
+            }
+
+            showStatus('パラメータを計算中...', 'info');
+
+            try {
+                const response = await fetch('/calibrate/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_id: currentJobId,
+                        markers: markers
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('計算エラー');
+                }
+
+                const result = await response.json();
+
+                document.getElementById('silenceThreshold').textContent = result.silence_threshold.toFixed(6);
+                document.getElementById('resumeMultiplier').textContent = result.resume_multiplier.toFixed(2) + 'x';
+
+                showStatus(`パラメータ計算完了！無音閾値: ${result.silence_threshold.toFixed(6)}, 呼吸再開倍率: ${result.resume_multiplier.toFixed(2)}x`, 'success');
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // 時刻変換関数
+        function secondsToAbsoluteTime(seconds) {
+            if (!recordingStartDatetime) return formatTime(seconds);
+
+            const startMs = new Date(recordingStartDatetime).getTime();
+            const absoluteMs = startMs + (seconds * 1000);
+            const date = new Date(absoluteMs);
+
+            return date.toLocaleString('ja-JP', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function formatTimeDisplay(seconds) {
+            if (timeDisplayMode === 'absolute' && recordingStartDatetime) {
+                return secondsToAbsoluteTime(seconds);
+            }
+            return formatTime(seconds);
+        }
+
+        async function saveRecordingDateTime() {
+            const datetimeInput = document.getElementById('recordingDateTime');
+            const datetime = datetimeInput.value;
+
+            if (!datetime) {
+                showStatus('日時を入力してください', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/calibrate/job/${currentJobId}/recording-time?recording_start_datetime=${encodeURIComponent(datetime)}`, {
+                    method: 'PUT'
+                });
+
+                if (!response.ok) throw new Error('保存エラー');
+
+                const result = await response.json();
+                recordingStartDatetime = datetime;
+
+                // ボタンを有効化
+                const toggleBtn = document.getElementById('timeDisplayToggle');
+                toggleBtn.disabled = false;
+                toggleBtn.style.background = '#3498db';
+                toggleBtn.style.cursor = 'pointer';
+
+                document.getElementById('recordingDateTimeStatus').textContent = '✅ 保存しました';
+                setTimeout(() => {
+                    document.getElementById('recordingDateTimeStatus').textContent = '';
+                }, 3000);
+
+                updateCurrentTimeModeDisplay();
+                showStatus('撮影開始日時を保存しました', 'success');
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function toggleTimeDisplayMode() {
+            if (!recordingStartDatetime) {
+                showStatus('先に撮影開始日時を設定してください', 'error');
+                return;
+            }
+
+            const newMode = timeDisplayMode === 'relative' ? 'absolute' : 'relative';
+
+            try {
+                const response = await fetch(`/calibrate/job/${currentJobId}/display-mode?mode=${newMode}`, {
+                    method: 'PUT'
+                });
+
+                if (!response.ok) throw new Error('切り替えエラー');
+
+                timeDisplayMode = newMode;
+                updateCurrentTimeModeDisplay();
+
+                // 表示を更新
+                displayCandidates();
+                displayWaveform(waveformData);
+
+                showStatus(`表示モードを ${newMode === 'relative' ? '相対時間' : '実時刻'} に切り替えました`, 'success');
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function updateCurrentTimeModeDisplay() {
+            const modeSpan = document.getElementById('currentTimeMode');
+            if (timeDisplayMode === 'relative') {
+                modeSpan.textContent = '現在: 相対時間表示';
+                modeSpan.style.color = '#3498db';
+            } else {
+                modeSpan.textContent = '現在: 実時刻表示';
+                modeSpan.style.color = '#27ae60';
+            }
+        }
+
+        async function showJudgmentSummary() {
+            if (candidates.length === 0) {
+                showStatus('先に候補ポイントを抽出してください', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/calibrate/judgment-summary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ candidates: candidates })
+                });
+
+                if (!response.ok) throw new Error('サマリ計算エラー');
+
+                const summary = await response.json();
+
+                // サマリパネルを表示
+                const panel = document.getElementById('judgmentSummaryPanel');
+                panel.style.display = 'block';
+
+                // 全体統計
+                document.getElementById('summaryTotal').textContent = `${summary.total}件`;
+                document.getElementById('summaryApnea').textContent = `${summary.apnea_count}件`;
+                document.getElementById('summaryApneaPct').textContent = `(${summary.apnea_percentage.toFixed(1)}%)`;
+                document.getElementById('summarySkip').textContent = `${summary.skip_count}件`;
+                document.getElementById('summarySkipPct').textContent = `(${summary.skip_percentage.toFixed(1)}%)`;
+
+                // 無呼吸の統計
+                if (summary.apnea_statistics) {
+                    const stats = summary.apnea_statistics;
+                    document.getElementById('apneaStatistics').style.display = 'block';
+                    document.getElementById('statMean').textContent = stats.mean_rms.toFixed(6);
+                    document.getElementById('statStd').textContent = stats.std_rms.toFixed(6);
+                    document.getElementById('statMin').textContent = stats.min_rms.toFixed(6);
+                    document.getElementById('statMax').textContent = stats.max_rms.toFixed(6);
+                    document.getElementById('statRange2Sigma').textContent =
+                        `${stats.range_2sigma.lower.toFixed(6)} 〜 ${stats.range_2sigma.upper.toFixed(6)}`;
+
+                    // 追加候補抽出コントロールを表示
+                    document.getElementById('additionalCandidatesControl').style.display = 'block';
+                } else {
+                    document.getElementById('apneaStatistics').style.display = 'none';
+                    document.getElementById('additionalCandidatesControl').style.display = 'none';
+                }
+
+                // パネルまでスクロール
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                showStatus('判定サマリを表示しました', 'success');
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function extractAdditionalCandidates() {
+            // 無呼吸判定された候補のIDを取得
+            const apneaCandidateIds = candidates
+                .filter(c => c.status === 'apnea')
+                .map(c => c.id);
+
+            if (apneaCandidateIds.length === 0) {
+                showStatus('無呼吸判定された候補がありません', 'error');
+                return;
+            }
+
+            const sigmaRange = parseFloat(document.getElementById('sigmaRange').value);
+            const maxCandidates = parseInt(document.getElementById('maxAdditionalCandidates').value);
+
+            showStatus('追加候補を抽出中...', 'info');
+
+            try {
+                const response = await fetch('/calibrate/extract-additional-candidates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_id: currentJobId,
+                        reference_candidate_ids: apneaCandidateIds,
+                        sigma_range: sigmaRange,
+                        max_candidates: maxCandidates
+                    })
+                });
+
+                if (!response.ok) throw new Error('追加候補抽出エラー');
+
+                const data = await response.json();
+
+                if (data.candidate_count === 0) {
+                    showStatus('条件に合う追加候補が見つかりませんでした', 'info');
+                    return;
+                }
+
+                // 追加候補をcandidates配列に追加
+                candidates.push(...data.candidates);
+
+                // 候補リストを再表示
+                displayCandidates();
+
+                showStatus(`✅ ${data.candidate_count}件の追加候補を抽出しました (#${data.candidates[0].id + 1}〜#${data.candidates[data.candidates.length - 1].id + 1})`, 'success');
+
+                // 候補リストの追加候補部分までスクロール
+                setTimeout(() => {
+                    const firstAdditionalCandidate = document.getElementById(`candidate-${data.candidates[0].id}`);
+                    if (firstAdditionalCandidate) {
+                        firstAdditionalCandidate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // グローバル変数にAHIデータを保存
+        let ahiData = null;
+
+        async function calculateSAS() {
+            if (!currentJobId) {
+                showStatus('先に動画を解析してください', 'error');
+                return;
+            }
+
+            if (candidates.length === 0) {
+                showStatus('先に候補ポイントを抽出してください', 'error');
+                return;
+            }
+
+            // 無呼吸判定された候補のみ抽出
+            const apneaEvents = candidates.filter(c => c.status === 'apnea');
+
+            if (apneaEvents.length === 0) {
+                showStatus('無呼吸判定された候補がありません。先に判定を行ってください', 'error');
+                return;
+            }
+
+            try {
+                showStatus('AHIを計算中...', 'info');
+
+                const response = await fetch('/calibrate/calculate-ahi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_id: currentJobId,
+                        apnea_events: apneaEvents
+                    })
+                });
+
+                if (!response.ok) throw new Error('AHI計算エラー');
+
+                ahiData = await response.json();
+
+                // SAS判定結果パネルを表示
+                displaySASResult(ahiData);
+
+                showStatus(`✅ SAS判定が完了しました`, 'success');
+
+            } catch (error) {
+                showStatus(`エラー: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function displaySASResult(data) {
+            const panel = document.getElementById('sasResultPanel');
+            panel.style.display = 'block';
+
+            // 総録音時間
+            const hours = Math.floor(data.total_duration / 3600);
+            const minutes = Math.floor((data.total_duration % 3600) / 60);
+            const seconds = Math.floor(data.total_duration % 60);
+            document.getElementById('sasRecordingTime').textContent = `${hours}時間${minutes}分${seconds}秒`;
+
+            // 無呼吸イベント数
+            document.getElementById('sasEventCount').textContent = `${data.total_events}回`;
+
+            // 全体AHI
+            document.getElementById('sasOverallAHI').textContent = data.overall_ahi.toFixed(1);
+
+            // 重症度表示（色付き）
+            const severityElement = document.getElementById('sasSeverity');
+            const severityNoteElement = document.getElementById('sasSeverityNote');
+
+            const severityColors = {
+                0: { bg: '#2ecc71', text: '正常', note: 'AHI < 5' },
+                1: { bg: '#f39c12', text: '軽度', note: '5 ≤ AHI < 15' },
+                2: { bg: '#e67e22', text: '中等度', note: '15 ≤ AHI < 30' },
+                3: { bg: '#e74c3c', text: '重度', note: 'AHI ≥ 30' }
+            };
+
+            const severityInfo = severityColors[data.severity_level];
+            severityElement.textContent = severityInfo.text;
+            severityNoteElement.textContent = severityInfo.note;
+            severityElement.parentElement.style.background = `rgba(255, 255, 255, 0.25)`;
+            severityElement.parentElement.style.border = `3px solid ${severityInfo.bg}`;
+
+            // 最悪期間
+            const worstPeriodContainer = document.getElementById('worstPeriodContainer');
+            if (data.worst_period) {
+                worstPeriodContainer.style.display = 'block';
+                document.getElementById('worstPeriodTime').textContent = formatTimeDisplay(data.worst_period.start_time);
+                document.getElementById('worstPeriodAHI').textContent = data.worst_period.ahi.toFixed(1);
+            } else {
+                worstPeriodContainer.style.display = 'none';
+            }
+
+            // パネルまでスクロール
+            setTimeout(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+
+        function showAHITimeline() {
+            if (!ahiData || !ahiData.timeline || ahiData.timeline.length === 0) {
+                showStatus('AHI推移データがありません', 'error');
+                return;
+            }
+
+            const container = document.getElementById('ahiGraphContainer');
+            container.style.display = 'block';
+
+            // 時刻データを準備
+            const times = ahiData.timeline.map(t => formatTimeDisplay(t.time));
+            const ahiValues = ahiData.timeline.map(t => t.ahi);
+
+            // SAS診断基準線（AHI = 5）
+            const thresholdLine = new Array(times.length).fill(5);
+
+            // Plotlyでグラフ描画
+            const trace1 = {
+                x: times,
+                y: ahiValues,
+                mode: 'lines+markers',
+                name: 'AHI',
+                line: { color: '#667eea', width: 2 },
+                marker: { size: 5 }
+            };
+
+            const trace2 = {
+                x: times,
+                y: thresholdLine,
+                mode: 'lines',
+                name: 'SAS診断基準 (AHI=5)',
+                line: { color: '#e74c3c', width: 2, dash: 'dash' }
+            };
+
+            const layout = {
+                xaxis: {
+                    title: '時刻',
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'AHI (回/時間)',
+                    rangemode: 'tozero'
+                },
+                hovermode: 'closest',
+                showlegend: true,
+                legend: {
+                    x: 0.01,
+                    y: 0.99,
+                    bgcolor: 'rgba(255, 255, 255, 0.8)',
+                    bordercolor: '#bdc3c7',
+                    borderwidth: 1
+                },
+                margin: { l: 60, r: 30, t: 30, b: 100 }
+            };
+
+            Plotly.newPlot('ahiGraph', [trace1, trace2], layout, { responsive: true });
+
+            // グラフまでスクロール
+            setTimeout(() => {
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>
