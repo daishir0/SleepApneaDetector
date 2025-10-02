@@ -778,7 +778,7 @@
                                 <option value="1.0">μ ± 1σ (68%信頼区間)</option>
                             </select>
                             <label style="font-weight: bold;">最大件数:</label>
-                            <input type="number" id="maxAdditionalCandidates" value="30" min="10" max="100" style="padding: 8px; border: 1px solid #bdc3c7; border-radius: 5px; width: 80px;">
+                            <input type="number" id="maxAdditionalCandidates" value="30" min="1" style="padding: 8px; border: 1px solid #bdc3c7; border-radius: 5px; width: 80px;">
                             <button onclick="extractAdditionalCandidates()" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
                                 実行
                             </button>
@@ -789,67 +789,7 @@
                     </div>
                 </div>
 
-                <!-- SAS判定結果パネル -->
-                <div id="sasResultPanel" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 10px; margin-bottom: 20px; color: white;">
-                    <h3 style="margin-top: 0; color: white;">🩺 SAS判定結果</h3>
-
-                    <!-- 全体のAHI -->
-                    <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; margin-bottom: 15px; backdrop-filter: blur(10px);">
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
-                            <div>
-                                <div style="font-size: 13px; opacity: 0.9;">総録音時間</div>
-                                <div style="font-size: 22px; font-weight: bold;" id="sasRecordingTime">-</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 13px; opacity: 0.9;">無呼吸イベント数</div>
-                                <div style="font-size: 22px; font-weight: bold;" id="sasEventCount">-</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- AHI・重症度 -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
-                            <div style="font-size: 13px; opacity: 0.9;">全体AHI</div>
-                            <div style="font-size: 42px; font-weight: bold; margin: 5px 0;" id="sasOverallAHI">-</div>
-                            <div style="font-size: 12px; opacity: 0.8;">回/時間</div>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
-                            <div style="font-size: 13px; opacity: 0.9;">重症度</div>
-                            <div style="font-size: 32px; font-weight: bold; margin: 5px 0;" id="sasSeverity">-</div>
-                            <div style="font-size: 12px; opacity: 0.8;" id="sasSeverityNote">-</div>
-                        </div>
-                    </div>
-
-                    <!-- 最悪期間 -->
-                    <div id="worstPeriodContainer" style="display: none; background: rgba(231, 76, 60, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid rgba(231, 76, 60, 0.5);">
-                        <h4 style="margin: 0 0 10px 0; color: white;">⚠️ 最も症状が強い時間帯</h4>
-                        <div style="font-size: 14px;">
-                            <div><strong>時間帯:</strong> <span id="worstPeriodTime">-</span></div>
-                            <div><strong>AHI:</strong> <span id="worstPeriodAHI">-</span> 回/時間</div>
-                        </div>
-                    </div>
-
-                    <!-- AHI推移グラフボタン -->
-                    <button onclick="showAHITimeline()" style="width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.25); color: white; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; backdrop-filter: blur(10px);">
-                        📊 AHI推移グラフを表示
-                    </button>
-                </div>
-
-                <!-- AHI推移グラフコンテナ -->
-                <div id="ahiGraphContainer" style="display: none; background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #667eea;">
-                    <h3 style="margin-top: 0; color: #667eea;">📈 AHI推移グラフ（スライディングウィンドウ: 5分刻み）</h3>
-                    <div id="ahiGraph"></div>
-                    <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 13px; color: #495057;">
-                        <strong>💡 グラフの見方:</strong><br>
-                        • 横軸: 時刻（窓の開始時刻）<br>
-                        • 縦軸: AHI（1時間あたりの無呼吸イベント数）<br>
-                        • 赤線（AHI=5）: SAS診断基準<br>
-                        • グラフが赤線を超える時間帯は、睡眠時無呼吸症候群の症状が出ている可能性があります
-                    </div>
-                </div>
-
-                    <div class="candidates-list" id="candidatesList"></div>
+                <div class="candidates-list" id="candidatesList"></div>
                 </div>
             </div>
 
@@ -894,6 +834,66 @@
                     </div>
                     <div class="step-result" id="step4Result" style="display: none;">
                         <strong>✅ 判定完了:</strong> AHI=<span id="step4AHI">-</span>、重症度=<span id="step4Severity">-</span>
+                    </div>
+
+                    <!-- SAS判定結果パネル -->
+                    <div id="sasResultPanel" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 10px; margin-bottom: 20px; color: white;">
+                        <h3 style="margin-top: 0; color: white;">🩺 SAS判定結果</h3>
+
+                        <!-- 全体のAHI -->
+                        <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; margin-bottom: 15px; backdrop-filter: blur(10px);">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                                <div>
+                                    <div style="font-size: 13px; opacity: 0.9;">総録音時間</div>
+                                    <div style="font-size: 22px; font-weight: bold;" id="sasRecordingTime">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 13px; opacity: 0.9;">無呼吸イベント数</div>
+                                    <div style="font-size: 22px; font-weight: bold;" id="sasEventCount">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AHI・重症度 -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
+                                <div style="font-size: 13px; opacity: 0.9;">全体AHI</div>
+                                <div style="font-size: 42px; font-weight: bold; margin: 5px 0;" id="sasOverallAHI">-</div>
+                                <div style="font-size: 12px; opacity: 0.8;">回/時間</div>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
+                                <div style="font-size: 13px; opacity: 0.9;">重症度</div>
+                                <div style="font-size: 32px; font-weight: bold; margin: 5px 0;" id="sasSeverity">-</div>
+                                <div style="font-size: 12px; opacity: 0.8;" id="sasSeverityNote">-</div>
+                            </div>
+                        </div>
+
+                        <!-- 最悪期間 -->
+                        <div id="worstPeriodContainer" style="display: none; background: rgba(231, 76, 60, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid rgba(231, 76, 60, 0.5);">
+                            <h4 style="margin: 0 0 10px 0; color: white;">⚠️ 最も症状が強い時間帯</h4>
+                            <div style="font-size: 14px;">
+                                <div><strong>時間帯:</strong> <span id="worstPeriodTime">-</span></div>
+                                <div><strong>AHI:</strong> <span id="worstPeriodAHI">-</span> 回/時間</div>
+                            </div>
+                        </div>
+
+                        <!-- AHI推移グラフボタン -->
+                        <button onclick="showAHITimeline()" style="width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.25); color: white; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; backdrop-filter: blur(10px);">
+                            📊 AHI推移グラフを表示
+                        </button>
+                    </div>
+
+                    <!-- AHI推移グラフコンテナ -->
+                    <div id="ahiGraphContainer" style="display: none; background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #667eea;">
+                        <h3 style="margin-top: 0; color: #667eea;">📈 AHI推移グラフ（スライディングウィンドウ: 5分刻み）</h3>
+                        <div id="ahiGraph"></div>
+                        <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 13px; color: #495057;">
+                            <strong>💡 グラフの見方:</strong><br>
+                            • 横軸: 時刻（窓の開始時刻）<br>
+                            • 縦軸: AHI（1時間あたりの無呼吸イベント数）<br>
+                            • 赤線（AHI=5）: SAS診断基準<br>
+                            • グラフが赤線を超える時間帯は、睡眠時無呼吸症候群の症状が出ている可能性があります
+                        </div>
                     </div>
                 </div>
             </div>
