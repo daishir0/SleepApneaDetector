@@ -35,8 +35,158 @@
 
         .subtitle {
             color: #7f8c8d;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-size: 14px;
+        }
+
+        /* プログレスインジケーター */
+        .workflow-progress {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .workflow-progress.active {
+            display: flex;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .progress-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: -50%;
+            width: 100%;
+            height: 3px;
+            background: #ddd;
+            z-index: 0;
+        }
+
+        .progress-step.completed:not(:last-child)::after {
+            background: #27ae60;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 10px;
+            background: #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .step-circle {
+            background: #3498db;
+            transform: scale(1.2);
+        }
+
+        .progress-step.completed .step-circle {
+            background: #27ae60;
+        }
+
+        .step-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .progress-step.active .step-label {
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        /* ステップカード */
+        .step-card {
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .step-card.collapsed {
+            opacity: 0.6;
+        }
+
+        .step-card-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .step-card-header h2 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-card-body {
+            padding: 25px;
+            display: none;
+        }
+
+        .step-card.expanded .step-card-body {
+            display: block;
+        }
+
+        .step-card.step1 .step-card-header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .step-card.step2 .step-card-header {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        }
+
+        .step-card.step3 .step-card-header {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .step-card.step4 .step-card-header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .step-description {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .step-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .step-result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
         }
 
         .upload-section {
@@ -486,6 +636,26 @@
         <h1>🎯 無呼吸検出パラメータ設定</h1>
         <p class="subtitle">Sleep Apnea Detection Parameter Calibration Tool</p>
 
+        <!-- プログレスインジケーター -->
+        <div class="workflow-progress" id="workflowProgress">
+            <div class="progress-step" id="progressStep1">
+                <div class="step-circle">1</div>
+                <div class="step-label">候補抽出</div>
+            </div>
+            <div class="progress-step" id="progressStep2">
+                <div class="step-circle">2</div>
+                <div class="step-label">無呼吸判定</div>
+            </div>
+            <div class="progress-step" id="progressStep3">
+                <div class="step-circle">3</div>
+                <div class="step-label">パラメーター計算</div>
+            </div>
+            <div class="progress-step" id="progressStep4">
+                <div class="step-circle">4</div>
+                <div class="step-label">SAS判定</div>
+            </div>
+        </div>
+
         <div class="instruction">
             <h3>📝 使い方</h3>
             <ol>
@@ -520,31 +690,49 @@
         </div>
 
         <div id="candidateMode" class="active">
-            <div class="candidates-section" id="candidatesSection">
-                <h2>🎯 無呼吸候補ポイント判定</h2>
-                <p style="color: #7f8c8d; font-size: 13px; margin-bottom: 15px;">
-                    RMSエネルギーが大きいポイント（呼吸再開の可能性）を順に判定してください
-                </p>
-
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 0%">0 / 0</div>
+            <!-- ステップ1: 候補ポイント抽出 -->
+            <div class="step-card step1 expanded" id="stepCard1">
+                <div class="step-card-header" onclick="toggleStepCard(1)">
+                    <h2>🎯 ステップ1: 候補ポイント抽出</h2>
+                    <span>▼</span>
                 </div>
+                <div class="step-card-body">
+                    <p class="step-description">
+                        RMSエネルギーが高い上位50件を無呼吸候補として自動抽出します。<br>
+                        呼吸再開時の大きな音を検出し、その前の無音区間を無呼吸の可能性として判定します。
+                    </p>
+                    <div class="step-actions">
+                        <button onclick="extractCandidates()" style="background: #3498db; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            📊 候補ポイントを抽出（上位50件）
+                        </button>
+                    </div>
+                    <div class="step-result" id="step1Result" style="display: none;">
+                        <strong>✅ 抽出完了:</strong> <span id="step1Count">-</span>件の候補を抽出しました
+                    </div>
+                </div>
+            </div>
 
-                <button onclick="extractCandidates()" style="background: #27ae60; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; margin-right: 10px;">
-                    📊 候補ポイントを抽出
-                </button>
+            <!-- ステップ2: 無呼吸判定 -->
+            <div class="step-card step2 collapsed" id="stepCard2">
+                <div class="step-card-header" onclick="toggleStepCard(2)">
+                    <h2>✓ ステップ2: 無呼吸判定</h2>
+                    <span>▼</span>
+                </div>
+                <div class="step-card-body">
+                    <p class="step-description">
+                        抽出された各候補ポイントの音声を再生し、「無呼吸」か「違う」かを判定してください。<br>
+                        判定結果は自動保存され、パラメーター計算に使用されます。
+                    </p>
 
-                <button onclick="showJudgmentSummary()" style="background: #3498db; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; margin-right: 10px;">
-                    📊 判定サマリを表示
-                </button>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%">0 / 0</div>
+                    </div>
 
-                <button onclick="calculateParametersFromCandidates()" style="background: #f39c12; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">
-                    📈 パラメータを計算
-                </button>
-
-                <button onclick="calculateSAS()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; margin-left: 10px; font-weight: bold;">
-                    🩺 SAS判定を実行
-                </button>
+                    <div class="step-actions">
+                        <button onclick="showJudgmentSummary()" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                            📊 判定サマリを表示
+                        </button>
+                    </div>
 
                 <!-- 判定サマリパネル -->
                 <div id="judgmentSummaryPanel" style="display: none; background: #ecf0f1; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
@@ -661,7 +849,53 @@
                     </div>
                 </div>
 
-                <div class="candidates-list" id="candidatesList"></div>
+                    <div class="candidates-list" id="candidatesList"></div>
+                </div>
+            </div>
+
+            <!-- ステップ3: パラメーター計算 -->
+            <div class="step-card step3 collapsed" id="stepCard3">
+                <div class="step-card-header" onclick="toggleStepCard(3)">
+                    <h2>🔧 ステップ3: パラメーター計算</h2>
+                    <span>▼</span>
+                </div>
+                <div class="step-card-body">
+                    <p class="step-description">
+                        「無呼吸」と判定されたデータから統計を計算し、無音閾値と呼吸再開倍率を自動算出します。<br>
+                        計算されたパラメーターは、SAS判定で使用されます。
+                    </p>
+                    <div class="step-actions">
+                        <button onclick="calculateParametersFromCandidates()" style="background: #f39c12; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            📈 パラメータを計算
+                        </button>
+                    </div>
+                    <div class="step-result" id="step3Result" style="display: none;">
+                        <strong>✅ 計算完了:</strong><br>
+                        <span id="step3Params">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステップ4: SAS判定実行 -->
+            <div class="step-card step4 collapsed" id="stepCard4">
+                <div class="step-card-header" onclick="toggleStepCard(4)">
+                    <h2>📊 ステップ4: SAS判定実行</h2>
+                    <span>▼</span>
+                </div>
+                <div class="step-card-body">
+                    <p class="step-description">
+                        計算されたパラメーターを使用して、全体のAHI（無呼吸低呼吸指数）を計算し、重症度を判定します。<br>
+                        スライディングウィンドウ方式で時間帯ごとのAHI推移も表示します。
+                    </p>
+                    <div class="step-actions">
+                        <button onclick="calculateSAS()" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            🩺 SAS判定を実行
+                        </button>
+                    </div>
+                    <div class="step-result" id="step4Result" style="display: none;">
+                        <strong>✅ 判定完了:</strong> AHI=<span id="step4AHI">-</span>、重症度=<span id="step4Severity">-</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -758,7 +992,69 @@
         // ページ読み込み時にファイル一覧を取得
         window.addEventListener('DOMContentLoaded', () => {
             loadFilesList();
+            // URLパラメータからjob_idを取得
+            const urlParams = new URLSearchParams(window.location.search);
+            const jobId = urlParams.get('job_id');
+            if (jobId) {
+                loadExistingJob(jobId);
+            }
         });
+
+        // ステップカード制御
+        function toggleStepCard(step) {
+            const card = document.getElementById(`stepCard${step}`);
+            if (card.classList.contains('expanded')) {
+                card.classList.remove('expanded');
+                card.classList.add('collapsed');
+            } else {
+                card.classList.remove('collapsed');
+                card.classList.add('expanded');
+            }
+        }
+
+        function updateProgressIndicator(step, state = 'active') {
+            // state: 'active', 'completed'
+            const progressStep = document.getElementById(`progressStep${step}`);
+            const workflowProgress = document.getElementById('workflowProgress');
+
+            // プログレスインジケーターを表示
+            workflowProgress.classList.add('active');
+
+            // 前のステップを完了状態に
+            for (let i = 1; i < step; i++) {
+                const prevStep = document.getElementById(`progressStep${i}`);
+                prevStep.classList.remove('active');
+                prevStep.classList.add('completed');
+            }
+
+            // 現在のステップをアクティブに
+            progressStep.classList.remove('completed');
+            progressStep.classList.add(state);
+        }
+
+        function expandStep(step) {
+            // 指定ステップを展開、他は折りたたみ
+            for (let i = 1; i <= 4; i++) {
+                const card = document.getElementById(`stepCard${i}`);
+                if (i === step) {
+                    card.classList.remove('collapsed');
+                    card.classList.add('expanded');
+                    setTimeout(() => {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                } else {
+                    card.classList.remove('expanded');
+                    card.classList.add('collapsed');
+                }
+            }
+            updateProgressIndicator(step);
+        }
+
+        function completeStep(step) {
+            const progressStep = document.getElementById(`progressStep${step}`);
+            progressStep.classList.remove('active');
+            progressStep.classList.add('completed');
+        }
 
         function switchMode(mode) {
             currentMode = mode;
@@ -914,7 +1210,11 @@
                 document.getElementById('timeSettings').style.display = 'block';
                 document.getElementById('markersList').style.display = 'block';
                 document.getElementById('modeSwitch').style.display = 'block';
-                document.getElementById('candidatesSection').style.display = 'block';
+
+                // ステップカードを表示（候補判定モードの場合）
+                if (currentMode === 'candidate') {
+                    expandStep(1);  // ステップ1を展開
+                }
 
                 document.getElementById('durationValue').textContent = (data.duration_sec / 60).toFixed(1) + ' 分';
 
@@ -947,7 +1247,12 @@
 
                 showStatus(`候補ポイント ${candidates.length}件を抽出しました！`, 'success');
                 displayCandidates();
-                document.getElementById('candidatesSection').style.display = 'block';
+
+                // ステップ1完了、ステップ2へ遷移
+                completeStep(1);
+                expandStep(2);
+                document.getElementById('step1Result').style.display = 'block';
+                document.getElementById('step1Count').textContent = candidates.length;
 
             } catch (error) {
                 showStatus(`エラー: ${error.message}`, 'error');
@@ -1170,6 +1475,15 @@
 
                 showStatus(`パラメータ計算完了！無呼吸: ${apneaCandidates.length}件`, 'success');
 
+                // ステップ3完了、ステップ4へ遷移
+                completeStep(3);
+                expandStep(4);
+                document.getElementById('step3Result').style.display = 'block';
+                document.getElementById('step3Params').innerHTML =
+                    `無音閾値: ${result.silence_threshold.toFixed(6)}<br>` +
+                    `呼吸再開倍率: ${result.resume_multiplier.toFixed(2)}x<br>` +
+                    `データ件数: ${apneaCandidates.length}件`;
+
             } catch (error) {
                 showStatus(`エラー: ${error.message}`, 'error');
                 console.error(error);
@@ -1212,7 +1526,11 @@
                 document.getElementById('infoPanel').style.display = 'grid';
                 document.getElementById('markersList').style.display = 'block';
                 document.getElementById('modeSwitch').style.display = 'block';
-                document.getElementById('candidatesSection').style.display = 'block';
+
+                // ステップカードを表示（候補判定モードの場合）
+                if (currentMode === 'candidate') {
+                    expandStep(1);  // ステップ1を展開
+                }
 
                 document.getElementById('durationValue').textContent = (data.duration_sec / 60).toFixed(1) + ' 分';
 
@@ -1815,6 +2133,12 @@
                 displaySASResult(ahiData);
 
                 showStatus(`✅ SAS判定が完了しました`, 'success');
+
+                // ステップ4完了
+                completeStep(4);
+                document.getElementById('step4Result').style.display = 'block';
+                document.getElementById('step4AHI').textContent = ahiData.overall_ahi.toFixed(1);
+                document.getElementById('step4Severity').textContent = ahiData.severity;
 
             } catch (error) {
                 showStatus(`エラー: ${error.message}`, 'error');

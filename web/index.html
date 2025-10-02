@@ -195,6 +195,42 @@
             background: #27ae60;
         }
 
+        .calibration-prompt {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+        }
+
+        .calibration-prompt h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .calibration-prompt p {
+            margin-bottom: 15px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .calibration-prompt button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .calibration-prompt button:hover {
+            transform: scale(1.05);
+        }
+
         .loading {
             text-align: center;
             padding: 20px;
@@ -284,6 +320,12 @@
                     <div class="download-buttons">
                         <button onclick="downloadResults('json')">📥 JSON</button>
                         <button onclick="downloadResults('csv')">📥 CSV</button>
+                    </div>
+
+                    <div class="calibration-prompt">
+                        <h3>📊 より精密な検出を行いますか？</h3>
+                        <p>キャリブレーションページでパラメーターを調整し、<br>より正確な無呼吸検出が可能です</p>
+                        <button onclick="goToCalibration()">キャリブレーションページへ →</button>
                     </div>
                 </div>
             </div>
@@ -451,6 +493,16 @@
             if (!currentJobId) return;
 
             window.location.href = `/download?job_id=${currentJobId}&fmt=${format}`;
+        }
+
+        function goToCalibration() {
+            if (!currentJobId) {
+                alert('解析結果がありません');
+                return;
+            }
+
+            // キャリブレーションページへジョブIDを渡して遷移
+            window.location.href = `/calibration?job_id=${currentJobId}`;
         }
     </script>
 </body>
