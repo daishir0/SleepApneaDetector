@@ -273,6 +273,127 @@
             padding: 20px;
         }
 
+        .waveform-settings {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .waveform-settings.collapsed .settings-content {
+            display: none;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .settings-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+
+        .settings-toggle {
+            font-size: 18px;
+            color: #7f8c8d;
+            transition: transform 0.3s;
+        }
+
+        .waveform-settings.collapsed .settings-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .settings-content {
+            margin-top: 15px;
+        }
+
+        .settings-row {
+            margin-bottom: 15px;
+        }
+
+        .settings-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-label {
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 8px;
+            display: block;
+            font-size: 14px;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #ebf5fb;
+        }
+
+        .preset-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .custom-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .custom-inputs label {
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+
+        .custom-inputs input[type="number"] {
+            width: 80px;
+            padding: 6px 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .axis-mode {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .axis-mode label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .axis-mode input[type="radio"] {
+            cursor: pointer;
+        }
+
         .info-panel {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -928,6 +1049,81 @@
             <p style="color: #7f8c8d; font-size: 12px; margin-bottom: 10px;">
                 波形をクリックすると、その位置から音声が再生されます
             </p>
+
+            <!-- グラフ設定パネル -->
+            <div class="waveform-settings" id="waveformSettings">
+                <div class="settings-header" onclick="toggleWaveformSettings()">
+                    <h3>⚙️ グラフ設定</h3>
+                    <span class="settings-toggle">▼</span>
+                </div>
+                <div class="settings-content">
+                    <!-- 横軸設定 -->
+                    <div class="settings-row">
+                        <span class="settings-label">📏 横軸（時間軸）</span>
+                        <div class="preset-buttons">
+                            <button class="preset-btn" onclick="applyXPreset(60, this)">1分</button>
+                            <button class="preset-btn" onclick="applyXPreset(300, this)">5分</button>
+                            <button class="preset-btn" onclick="applyXPreset(600, this)">10分</button>
+                            <button class="preset-btn" onclick="applyXPreset(1800, this)">30分</button>
+                            <button class="preset-btn" onclick="applyXPreset(3600, this)">1時間</button>
+                            <button class="preset-btn" onclick="applyXPreset(10800, this)">3時間</button>
+                            <button class="preset-btn active" onclick="applyXPreset('full', this)">全体</button>
+                        </div>
+                        <div class="custom-inputs" style="margin-top: 8px;">
+                            <label>カスタム:</label>
+                            <label>開始</label>
+                            <input type="number" id="xAxisStart" min="0" step="1" placeholder="0" onchange="applyCustomXAxis()">
+                            <label>秒 〜 終了</label>
+                            <input type="number" id="xAxisEnd" min="0" step="1" placeholder="300" onchange="applyCustomXAxis()">
+                            <label>秒</label>
+                        </div>
+                    </div>
+
+                    <!-- 縦軸設定 -->
+                    <div class="settings-row">
+                        <span class="settings-label">📊 縦軸（振幅）</span>
+                        <div class="axis-mode">
+                            <label>
+                                <input type="radio" name="yAxisMode" value="auto" checked onchange="applyYAxisMode()">
+                                自動
+                            </label>
+                            <label>
+                                <input type="radio" name="yAxisMode" value="normalized" onchange="applyYAxisMode()">
+                                正規化
+                            </label>
+                            <label>
+                                <input type="radio" name="yAxisMode" value="custom" onchange="applyYAxisMode()">
+                                カスタム
+                            </label>
+                        </div>
+                        <div class="custom-inputs" id="yAxisCustomInputs" style="margin-top: 8px; display: none;">
+                            <label>最小値</label>
+                            <input type="number" id="yAxisMin" step="0.001" placeholder="-0.1" onchange="applyCustomYAxis()">
+                            <label>〜 最大値</label>
+                            <input type="number" id="yAxisMax" step="0.001" placeholder="0.1" onchange="applyCustomYAxis()">
+                        </div>
+                    </div>
+
+                    <!-- 撮影開始日時設定 -->
+                    <div class="settings-row">
+                        <span class="settings-label">📅 撮影開始日時設定</span>
+                        <div class="custom-inputs">
+                            <label>撮影開始日時:</label>
+                            <input type="datetime-local" id="recordingDateTime" style="padding: 6px 8px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 13px;">
+                            <button onclick="saveRecordingDateTime()" style="padding: 6px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;">保存</button>
+                            <span id="recordingDateTimeStatus" style="color: #27ae60; font-weight: bold; font-size: 13px;"></span>
+                        </div>
+                        <div class="custom-inputs" style="margin-top: 8px;">
+                            <label>時刻表示:</label>
+                            <button id="timeDisplayToggle" onclick="toggleTimeDisplayMode()" disabled style="padding: 6px 15px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: not-allowed; font-size: 13px; font-weight: 500;">
+                                相対時間 ⇄ 実時刻
+                            </button>
+                            <span id="currentTimeMode" style="color: #7f8c8d; font-size: 12px;">(撮影日時を設定してください)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="waveformPlot"></div>
         </div>
 
@@ -954,23 +1150,6 @@
             </div>
         </div>
 
-        <div class="time-settings" id="timeSettings" style="display:none; background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-            <h3 style="margin-top: 0;">📅 撮影開始日時設定</h3>
-            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
-                <label style="font-weight: bold;">撮影開始日時:</label>
-                <input type="datetime-local" id="recordingDateTime" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
-                <button onclick="saveRecordingDateTime()" style="padding: 8px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">保存</button>
-                <span id="recordingDateTimeStatus" style="color: #27ae60; font-weight: bold;"></span>
-            </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <label style="font-weight: bold;">時刻表示:</label>
-                <button id="timeDisplayToggle" onclick="toggleTimeDisplayMode()" disabled style="padding: 8px 20px; background: #95a5a6; color: white; border: none; border-radius: 5px; cursor: not-allowed; font-weight: bold;">
-                    相対時間 ⇄ 実時刻
-                </button>
-                <span id="currentTimeMode" style="color: #7f8c8d; font-size: 13px;">(撮影日時を設定してください)</span>
-            </div>
-        </div>
-
         <div class="markers-list" id="markersList" style="display:none;">
             <h3>マークした無呼吸区間</h3>
             <div id="markersContent"></div>
@@ -988,6 +1167,11 @@
         let currentMode = 'candidate';
         let recordingStartDatetime = null;  // 撮影開始日時
         let timeDisplayMode = 'relative';    // 'relative' or 'absolute'
+
+        // 波形スケール設定
+        let waveformXRange = null;  // [start, end] or null for full
+        let waveformYMode = 'auto';  // 'auto', 'normalized', 'custom'
+        let waveformYRange = null;  // [min, max] or null for auto
 
         // ページ読み込み時にファイル一覧を取得
         window.addEventListener('DOMContentLoaded', () => {
@@ -1207,7 +1391,6 @@
 
                 document.getElementById('waveformContainer').style.display = 'block';
                 document.getElementById('infoPanel').style.display = 'grid';
-                document.getElementById('timeSettings').style.display = 'block';
                 document.getElementById('markersList').style.display = 'block';
                 document.getElementById('modeSwitch').style.display = 'block';
 
@@ -1630,15 +1813,137 @@
             updatePlaybackLine();
         }
 
+        // 波形設定パネルの折りたたみ
+        function toggleWaveformSettings() {
+            const settings = document.getElementById('waveformSettings');
+            settings.classList.toggle('collapsed');
+        }
+
+        // 横軸プリセット適用
+        function applyXPreset(value, buttonElement) {
+            if (!waveformData) return;
+
+            // ボタンのアクティブ状態を更新
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            }
+
+            if (value === 'full') {
+                waveformXRange = null;
+                Plotly.relayout('waveformPlot', {
+                    'xaxis.range': [0, waveformData.duration_sec]
+                });
+            } else {
+                waveformXRange = [0, Math.min(value, waveformData.duration_sec)];
+                Plotly.relayout('waveformPlot', {
+                    'xaxis.range': waveformXRange
+                });
+            }
+        }
+
+        // 横軸カスタム適用
+        function applyCustomXAxis() {
+            if (!waveformData) return;
+
+            const start = parseFloat(document.getElementById('xAxisStart').value) || 0;
+            const end = parseFloat(document.getElementById('xAxisEnd').value) || waveformData.duration_sec;
+
+            waveformXRange = [
+                Math.max(0, start),
+                Math.min(waveformData.duration_sec, end)
+            ];
+
+            Plotly.relayout('waveformPlot', {
+                'xaxis.range': waveformXRange
+            });
+
+            // プリセットボタンの選択を解除
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        // 縦軸モード切り替え
+        function applyYAxisMode() {
+            if (!waveformData) return;
+
+            const mode = document.querySelector('input[name="yAxisMode"]:checked').value;
+            waveformYMode = mode;
+
+            // カスタム入力フィールドの表示/非表示
+            const customInputs = document.getElementById('yAxisCustomInputs');
+            customInputs.style.display = mode === 'custom' ? 'flex' : 'none';
+
+            // Y軸範囲を再計算して適用
+            updateYAxisRange();
+        }
+
+        // 縦軸カスタム適用
+        function applyCustomYAxis() {
+            if (!waveformData || waveformYMode !== 'custom') return;
+
+            const min = parseFloat(document.getElementById('yAxisMin').value);
+            const max = parseFloat(document.getElementById('yAxisMax').value);
+
+            if (!isNaN(min) && !isNaN(max) && min < max) {
+                waveformYRange = [min, max];
+                Plotly.relayout('waveformPlot', {
+                    'yaxis.range': waveformYRange
+                });
+            }
+        }
+
+        // Y軸範囲を更新
+        function updateYAxisRange() {
+            if (!waveformData) return;
+
+            const waveform = waveformData.rms_full || waveformData.waveform;
+            const maxRms = waveform.y.reduce((max, val) => Math.max(max, val), -Infinity);
+            const minRms = waveform.y.reduce((min, val) => Math.min(min, val), Infinity);
+
+            let yRange;
+
+            if (waveformYMode === 'auto') {
+                // 自動: デフォルト範囲 -0.05〜0.05
+                yRange = [-0.05, 0.05];
+            } else if (waveformYMode === 'normalized') {
+                // 正規化: 0〜最大値
+                yRange = [0, maxRms * 1.1];
+            } else if (waveformYMode === 'custom' && waveformYRange) {
+                // カスタム: ユーザー指定
+                yRange = waveformYRange;
+            } else {
+                // デフォルト
+                yRange = [-0.05, 0.05];
+            }
+
+            Plotly.relayout('waveformPlot', {
+                'yaxis.range': yRange
+            });
+        }
+
         function displayWaveform(data) {
             // rms_fullがあればそれを使用、なければwaveformを使用（後方互換性）
             const waveform = data.rms_full || data.waveform;
 
-            // 最大値を取得して縦軸の範囲を決定（大きな配列でもスタックオーバーフローしない方法）
+            // 最大値・最小値を取得
             const maxRms = waveform.y.reduce((max, val) => Math.max(max, val), -Infinity);
-            // 0を中央に配置するため、上下対称の範囲を設定
-            const yMax = maxRms * 1.1;  // 上に10%の余白
-            const yRange = [-yMax, yMax];
+            const minRms = waveform.y.reduce((min, val) => Math.min(min, val), Infinity);
+
+            // Y軸範囲を計算（設定モードに応じて）
+            let yRange;
+            if (waveformYMode === 'auto') {
+                // 自動: デフォルト範囲 -0.05〜0.05
+                yRange = [-0.05, 0.05];
+            } else if (waveformYMode === 'normalized') {
+                // 正規化: 0〜最大値
+                yRange = [0, maxRms * 1.1];
+            } else if (waveformYMode === 'custom' && waveformYRange) {
+                // カスタム: ユーザー指定
+                yRange = waveformYRange;
+            } else {
+                // デフォルト
+                yRange = [-0.05, 0.05];
+            }
 
             const trace = {
                 x: waveform.t,
@@ -1650,9 +1955,18 @@
                 fillcolor: 'rgba(52, 152, 219, 0.2)'
             };
 
+            // X軸範囲を計算（設定があればそれを使用）
+            let xRange;
+            if (waveformXRange) {
+                xRange = waveformXRange;
+            } else {
+                // デフォルト: 全体表示（最初は300秒まで）
+                xRange = [0, Math.min(300, data.duration_sec)];
+            }
+
             // X軸ラベルの設定
             const xaxisConfig = {
-                range: [0, Math.min(300, data.duration_sec)]
+                range: xRange
             };
 
             if (timeDisplayMode === 'absolute' && recordingStartDatetime) {
@@ -1674,6 +1988,7 @@
             }
 
             const layout = {
+                autosize: true,
                 xaxis: xaxisConfig,
                 yaxis: {
                     title: 'RMS エネルギー',
@@ -1696,6 +2011,11 @@
             };
 
             Plotly.newPlot('waveformPlot', [trace], layout, config);
+
+            // グラフを確実にリサイズ
+            setTimeout(() => {
+                Plotly.Plots.resize('waveformPlot');
+            }, 100);
 
             document.getElementById('waveformPlot').on('plotly_click', function(data) {
                 const point = data.points[0];
