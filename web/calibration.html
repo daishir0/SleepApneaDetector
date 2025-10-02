@@ -489,7 +489,7 @@
         <div class="instruction">
             <h3>📝 使い方</h3>
             <ol>
-                <li>動画ファイルをアップロードして「解析開始」をクリック</li>
+                <li>動画・音声ファイルをアップロードして「解析開始」をクリック</li>
                 <li>または、以前アップロードしたファイル一覧から選択</li>
                 <li>波形が表示されたら、タイムスケールを調整して見やすくする</li>
                 <li>波形をクリックすると、その位置から音声が再生されます</li>
@@ -845,7 +845,7 @@
         }
 
         async function deleteJob(jobId, displayName) {
-            if (!confirm(`「${displayName}」を削除しますか？\n\n動画ファイル、音声ファイル、解析結果が全て削除されます。`)) {
+            if (!confirm(`「${displayName}」を削除しますか？\n\nメディアファイル、音声ファイル、解析結果が全て削除されます。`)) {
                 return;
             }
 
@@ -1185,7 +1185,7 @@
                 return;
             }
 
-            showStatus('動画を解析中... 音声を抽出しています', 'info');
+            showStatus('ファイルを解析中... 音声を抽出しています', 'info');
 
             const formData = new FormData();
             formData.append('file', file);
@@ -1450,7 +1450,7 @@
             }
 
             if (!waveformData) {
-                showStatus('先に動画を解析してください', 'error');
+                showStatus('先にファイルを解析してください', 'error');
                 return;
             }
 
@@ -1778,7 +1778,7 @@
 
         async function calculateSAS() {
             if (!currentJobId) {
-                showStatus('先に動画を解析してください', 'error');
+                showStatus('先にファイルを解析してください', 'error');
                 return;
             }
 

@@ -14,7 +14,7 @@ import subprocess
 class SimpleAudioConfig:
     """シンプル音声処理の設定パラメータ"""
     def __init__(self):
-        self.audio_sr = 16000  # サンプリングレート
+        self.audio_sr = 8000  # サンプリングレート（メモリ削減のため8kHzに変更）
         self.rms_win = 0.1  # RMS窓サイズ (秒)
         self.rms_hop = 0.05  # RMSホップサイズ (秒)
 
@@ -30,13 +30,13 @@ class SimpleAudioConfig:
         self.noise_floor_percentile = 10  # ノイズフロア推定
 
 
-def load_and_preprocess(video_path: str, target_sr: int = 16000) -> Tuple[np.ndarray, int]:
+def load_and_preprocess(video_path: str, target_sr: int = 8000) -> Tuple[np.ndarray, int]:
     """
     動画から音声を抽出し、前処理を実行
 
     Args:
         video_path: 動画ファイルパス
-        target_sr: 目標サンプリングレート
+        target_sr: 目標サンプリングレート（デフォルト8kHz、メモリ削減）
 
     Returns:
         (音声データ, サンプリングレート)
@@ -239,7 +239,7 @@ def downsample_for_plot(times: np.ndarray, values: np.ndarray, max_points: int =
 
 def get_audio_duration(audio_path: str) -> float:
     """
-    音声ファイルの継続時間を取得（動画対応なし、音声専用）
+    音声ファイルの継続時間を取得（FFprobe使用、軽量・高速）
 
     Args:
         audio_path: 音声ファイルパス
@@ -247,7 +247,17 @@ def get_audio_duration(audio_path: str) -> float:
     Returns:
         継続時間（秒）
     """
-    # librosaで音声読み込み（サンプリングレートは元のまま）
-    y, sr = librosa.load(audio_path, sr=None)
-    duration = len(y) / sr
-    return float(duration)
+    import subprocess
+    import json
+
+    # FFprobeでメタデータ取得（ファイル全体を読み込まない）
+    cmd = [
+        'ffprobe', '-v', 'quiet', '-print_format', 'json',
+        '-show_format', audio_path
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    data = json.loads(result.stdout)
+
+    duration = float(data['format']['duration'])
+    return duration

@@ -222,9 +222,9 @@
         <p class="subtitle">Sleep Apnea Detection System v0.3.1</p>
 
         <div class="upload-section">
-            <h3>動画ファイルをアップロード</h3>
-            <p>睡眠中の動画ファイル（MP4, MOV, AVIなど）を選択してください</p>
-            <input type="file" id="videoFile" accept="video/*">
+            <h3>動画・音声ファイルをアップロード</h3>
+            <p>睡眠中の動画・音声ファイル（MP4, MOV, AVI, WAV, MP3など）を選択してください</p>
+            <input type="file" id="videoFile" accept="video/*,audio/*">
             <br>
             <button id="analyzeBtn" onclick="analyzeVideo()">解析開始</button>
         </div>
@@ -317,7 +317,7 @@
             analyzeBtn.disabled = true;
             analyzeBtn.textContent = '解析中...';
 
-            showStatus('動画を解析中です。数分かかる場合があります...', 'info');
+            showStatus('ファイルを解析中です。数分かかる場合があります...', 'info');
             document.getElementById('resultsContainer').style.display = 'none';
 
             const formData = new FormData();
