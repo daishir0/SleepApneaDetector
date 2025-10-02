@@ -1121,6 +1121,20 @@
                             <span id="currentTimeMode" style="color: #7f8c8d; font-size: 12px;">(撮影日時を設定してください)</span>
                         </div>
                     </div>
+
+                    <!-- 無呼吸判定表示 -->
+                    <div class="settings-row">
+                        <span class="settings-label">🔴 無呼吸判定表示</span>
+                        <div class="axis-mode">
+                            <label>
+                                <input type="checkbox" id="showApneaMarkersCheckbox" onchange="toggleApneaMarkers()">
+                                ステップ２で表示されている無呼吸判定ポイントを表示
+                            </label>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 12px; color: #7f8c8d;">
+                            ※ 赤い垂直線と背景色で無呼吸区間を表示します
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1172,6 +1186,7 @@
         let waveformXRange = null;  // [start, end] or null for full
         let waveformYMode = 'auto';  // 'auto', 'normalized', 'custom'
         let waveformYRange = null;  // [min, max] or null for auto
+        let showApneaMarkers = false;  // 無呼吸判定ポイント表示フラグ
 
         // ページ読み込み時にファイル一覧を取得
         window.addEventListener('DOMContentLoaded', () => {
@@ -1921,6 +1936,61 @@
             });
         }
 
+        // 無呼吸判定表示の切り替え
+        function buildApneaShapes() {
+            /**
+             * 無呼吸マーカーのshapes配列を構築
+             */
+            const shapes = [];
+            if (showApneaMarkers && candidates && candidates.length > 0) {
+                const apneaCandidates = candidates.filter(c => c.status === 'apnea');
+
+                apneaCandidates.forEach(candidate => {
+                    // 無呼吸区間の半透明背景（先に描画してレイヤーを下に）
+                    if (candidate.apnea_start !== undefined && candidate.apnea_end !== undefined) {
+                        shapes.push({
+                            type: 'rect',
+                            x0: candidate.apnea_start,
+                            x1: candidate.apnea_end,
+                            y0: 0,
+                            y1: 1,
+                            yref: 'paper',
+                            fillcolor: 'rgba(231, 76, 60, 0.1)',
+                            line: { width: 0 },
+                            layer: 'below'
+                        });
+                    }
+
+                    // ピーク位置の赤い垂直線
+                    shapes.push({
+                        type: 'line',
+                        x0: candidate.peak_time,
+                        x1: candidate.peak_time,
+                        y0: 0,
+                        y1: 1,
+                        yref: 'paper',
+                        line: {
+                            color: 'rgba(231, 76, 60, 0.8)',
+                            width: 2,
+                            dash: 'solid'
+                        }
+                    });
+                });
+            }
+            return shapes;
+        }
+
+        function toggleApneaMarkers() {
+            showApneaMarkers = document.getElementById('showApneaMarkersCheckbox').checked;
+
+            // グラフが存在する場合、shapesのみを更新（スケールを維持）
+            const plotDiv = document.getElementById('waveformPlot');
+            if (plotDiv && plotDiv.data) {
+                const shapes = buildApneaShapes();
+                Plotly.relayout('waveformPlot', { shapes: shapes });
+            }
+        }
+
         function displayWaveform(data) {
             // rms_fullがあればそれを使用、なければwaveformを使用（後方互換性）
             const waveform = data.rms_full || data.waveform;
@@ -1987,6 +2057,9 @@
                 xaxisConfig.title = '時間 (秒)';
             }
 
+            // 無呼吸マーカーの shapes 配列を構築
+            const shapes = buildApneaShapes();
+
             const layout = {
                 autosize: true,
                 xaxis: xaxisConfig,
@@ -2000,14 +2073,96 @@
                     autorange: false
                 },
                 hovermode: 'x',
-                shapes: [],
+                shapes: shapes,
                 margin: { l: 60, r: 30, t: 30, b: 60 }
             };
 
             const config = {
                 responsive: true,
                 displayModeBar: true,
-                modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                modeBarButtonsToAdd: [
+                    {
+                        name: 'toStart',
+                        title: '最初へ',
+                        icon: {
+                            width: 1000,
+                            height: 1000,
+                            path: 'M100,500 L400,200 L400,400 L700,100 L700,900 L400,600 L400,800 Z',
+                            transform: 'matrix(1 0 0 -1 0 1000)'
+                        },
+                        click: function(gd) {
+                            if (!waveformData) return;
+                            const currentRange = gd.layout.xaxis.range;
+                            const rangeWidth = currentRange[1] - currentRange[0];
+                            Plotly.relayout(gd, {
+                                'xaxis.range': [0, rangeWidth]
+                            });
+                        }
+                    },
+                    {
+                        name: 'moveLeft',
+                        title: '左へ移動',
+                        icon: {
+                            width: 1000,
+                            height: 1000,
+                            path: 'M300,500 L700,200 L700,800 Z',
+                            transform: 'matrix(1 0 0 -1 0 1000)'
+                        },
+                        click: function(gd) {
+                            if (!waveformData) return;
+                            const currentRange = gd.layout.xaxis.range;
+                            const rangeWidth = currentRange[1] - currentRange[0];
+                            const shift = rangeWidth * 0.5;  // 50%移動
+                            const newStart = Math.max(0, currentRange[0] - shift);
+                            const newEnd = newStart + rangeWidth;
+                            Plotly.relayout(gd, {
+                                'xaxis.range': [newStart, newEnd]
+                            });
+                        }
+                    },
+                    {
+                        name: 'moveRight',
+                        title: '右へ移動',
+                        icon: {
+                            width: 1000,
+                            height: 1000,
+                            path: 'M700,500 L300,200 L300,800 Z',
+                            transform: 'matrix(1 0 0 -1 0 1000)'
+                        },
+                        click: function(gd) {
+                            if (!waveformData) return;
+                            const currentRange = gd.layout.xaxis.range;
+                            const rangeWidth = currentRange[1] - currentRange[0];
+                            const shift = rangeWidth * 0.5;  // 50%移動
+                            const maxTime = waveformData.duration_sec;
+                            const newEnd = Math.min(maxTime, currentRange[1] + shift);
+                            const newStart = newEnd - rangeWidth;
+                            Plotly.relayout(gd, {
+                                'xaxis.range': [newStart, newEnd]
+                            });
+                        }
+                    },
+                    {
+                        name: 'toEnd',
+                        title: '最後へ',
+                        icon: {
+                            width: 1000,
+                            height: 1000,
+                            path: 'M900,500 L600,800 L600,600 L300,900 L300,100 L600,400 L600,200 Z',
+                            transform: 'matrix(1 0 0 -1 0 1000)'
+                        },
+                        click: function(gd) {
+                            if (!waveformData) return;
+                            const currentRange = gd.layout.xaxis.range;
+                            const rangeWidth = currentRange[1] - currentRange[0];
+                            const maxTime = waveformData.duration_sec;
+                            Plotly.relayout(gd, {
+                                'xaxis.range': [maxTime - rangeWidth, maxTime]
+                            });
+                        }
+                    }
+                ]
             };
 
             Plotly.newPlot('waveformPlot', [trace], layout, config);
