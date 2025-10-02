@@ -235,3 +235,19 @@ def downsample_for_plot(times: np.ndarray, values: np.ndarray, max_points: int =
     # 等間隔でサンプリング
     indices = np.linspace(0, len(times) - 1, max_points, dtype=int)
     return times[indices], values[indices]
+
+
+def get_audio_duration(audio_path: str) -> float:
+    """
+    音声ファイルの継続時間を取得（動画対応なし、音声専用）
+
+    Args:
+        audio_path: 音声ファイルパス
+
+    Returns:
+        継続時間（秒）
+    """
+    # librosaで音声読み込み（サンプリングレートは元のまま）
+    y, sr = librosa.load(audio_path, sr=None)
+    duration = len(y) / sr
+    return float(duration)

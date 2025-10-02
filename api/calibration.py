@@ -35,7 +35,7 @@ class CalculateRequest(BaseModel):
 @router.post("/analyze")
 async def analyze_for_calibration(file: UploadFile = File(...)):
     """
-    キャリブレーション用の音声解析
+    キャリブレーション用の音声解析（動画・音声両対応）
     波形データと音声ファイルを返す
     """
     try:
@@ -47,9 +47,29 @@ async def analyze_for_calibration(file: UploadFile = File(...)):
         print(f"\n[キャリブレーション] ジョブID: {job_id}")
         print(f"  ファイルサイズ: {file_size / 1024 / 1024:.1f}MB")
 
-        # 動画メタデータ
-        metadata = video_module.get_video_metadata(file_path)
-        print(f"  動画長: {metadata['duration']:.1f}秒")
+        # ファイル拡張子でタイプ判定
+        file_ext = file.filename.lower().split('.')[-1]
+
+        # 動画形式
+        video_extensions = ['mp4', 'mov', 'avi', 'mkv', 'flv', 'wmv', 'webm', 'm4v',
+                           '3gp', 'mpg', 'mpeg', 'ogv']
+        # 音声形式
+        audio_extensions = ['wav', 'mp3', 'm4a', 'aac', 'flac', 'ogg', 'wma', 'opus',
+                           'aiff', 'aif']
+
+        if file_ext in video_extensions:
+            # 動画処理パターン
+            metadata = video_module.get_video_metadata(file_path)
+            duration = metadata['duration']
+            print(f"  動画ファイル: {file.filename}")
+            print(f"  動画長: {duration:.1f}秒")
+        elif file_ext in audio_extensions:
+            # 音声処理パターン
+            duration = audio_simple.get_audio_duration(file_path)
+            print(f"  音声ファイル: {file.filename}")
+            print(f"  音声長: {duration:.1f}秒")
+        else:
+            raise HTTPException(status_code=400, detail=f"非対応のファイル形式です: {file_ext}")
 
         # 音声処理
         cfg = audio_simple.SimpleAudioConfig()
@@ -81,7 +101,7 @@ async def analyze_for_calibration(file: UploadFile = File(...)):
         # RMSデータを保存
         result_data = {
             "job_id": job_id,
-            "duration_sec": metadata["duration"],
+            "duration_sec": duration,
             "sr": sr,
             "waveform": {
                 "t": down_t.tolist(),
